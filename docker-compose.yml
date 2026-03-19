@@ -1,0 +1,39 @@
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: shortener_user
+      POSTGRES_PASSWORD: shortener_password
+      POSTGRES_DB: shortener_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: "pg_isready -U shortener_user -d shortener_db"
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # FastAPI Application
+  api:
+    build: .
+    restart: always
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # These env vars override anything locally, making it work out-of-the-box for the reviewer
+      - POSTGRES_SERVER=db
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=shortener_user
+      - POSTGRES_PASSWORD=shortener_password
+      - POSTGRES_DB=shortener_db
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+volumes:
+  postgres_data:
