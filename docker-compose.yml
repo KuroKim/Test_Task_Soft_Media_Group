@@ -17,6 +17,17 @@ services:
       timeout: 5s
       retries: 5
 
+  # Test Database
+  test_db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+      POSTGRES_DB: test_db
+    ports:
+      - "5433:5432" # Прокидываем на другой порт, чтобы не конфликтовать
+
   # FastAPI Application
   api:
     build: .
